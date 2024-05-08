@@ -1,0 +1,21 @@
+---
+- name: set banner
+  copy:
+    src: etc/issue.net
+    dest: "{{ harden_linux_sshd_banner }}"
+    owner: root
+    group: "{{ harden_linux_sshd_config_group }}"
+
+- name: Configfile openssh-server
+  template:
+    src: etc/ssh/sshd_config.j2
+    dest: "/etc/ssh/sshd_config"
+    owner: "{{ harden_linux_sshd_config_user }}"
+    group: "{{ harden_linux_sshd_config_group }}"
+    mode: 0600  
+
+- name: Start sshd service
+  service:
+    name: "ssh"
+    state: started
+    enabled: yes

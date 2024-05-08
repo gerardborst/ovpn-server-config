@@ -1,0 +1,21 @@
+- name: make root password
+  shell: mkpasswd --method=sha-512 {{ lookup('env','ROOT_PASSWORD') }}
+  register: mkpasswd
+  
+- name: Set root password
+  user:
+    name: root
+    password: "{{ mkpasswd.stdout }}"
+
+- name: disable default account
+  user:
+    name: default
+    remove: yes
+    state: absent
+
+- name: remove vagrant account
+  user:
+    name: vagrant
+    remove: yes
+    state: absent
+  when: remove_vagrant_account

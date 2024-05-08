@@ -1,0 +1,68 @@
+---
+# defaults file for ansible-role-ssh-hardening
+    
+# SSH server configuration
+# Definie default ssh port
+harden_linux_ssh_port: "22"
+
+# Listening on specific address
+sshd_listening_address:
+    - 0.0.0.0
+
+harden_linux_sshd_config_user: root
+harden_linux_sshd_config_group: root
+
+# Set banner
+harden_linux_sshd_banner: "/etc/issue.net"
+# Use pam authentification
+harden_linux_sshd_pam: "yes"
+
+# Disable x11 forwarding
+harden_linux_sshd_x11_forwarding: "no"
+
+# Disable agent forwarding
+harden_linux_sshd_agent_forwarding: "yes"
+
+# Disable tcp forwarding
+harden_linux_sshd_tcp_forwarding: "no"
+
+# Disconnect idle sessions
+harden_linux_sshd_client_alive_interval: "300"
+harden_linux_sshd_client_alive_countMax: "3"
+
+# SSH client configuration
+harden_linux_ssh_config: /etc/ssh/ssh_config
+
+
+# Disable roaming
+harden_linux_ssh_roaming: "no"
+
+# ssh must be use pub key
+harden_linux_ssh_password_authentification: "no"
+
+# Cipher do not use sha1
+harden_linux_openssh_ciphers:
+    - chacha20-poly1305@openssh.com
+    - aes256-gcm@openssh.com
+    - aes128-gcm@openssh.com
+    - aes256-ctr
+    - aes192-ctr
+    - aes128-ctr
+
+# Message authentication code
+harden_linux_openssh_macs: 
+    - hmac-sha2-512-etm@openssh.com
+    - hmac-sha2-256-etm@openssh.com
+    - umac-128-etm@openssh.com
+    - hmac-sha2-512
+    - hmac-sha2-256
+
+# Key exchange algorithms
+harden_linux_openssh_kexalgorithms:
+    - curve25519-sha256@libssh.org
+    - diffie-hellman-group-exchange-sha256
+
+# Packages required by this role
+harden_linux_required_packages:
+    - unattended-upgrades
+    - sudo

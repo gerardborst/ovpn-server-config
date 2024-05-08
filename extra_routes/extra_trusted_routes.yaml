@@ -1,0 +1,8 @@
+extra_trusted_routes:
+# private IP space 1
+- netmask: 255.0.0.0
+  network: 10.0.0.0
+# private IP space 2
+- netmask: 255.240.0.0
+  network: 172.16.0.0
+#

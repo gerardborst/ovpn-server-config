@@ -1,0 +1,40 @@
+- name: Start resolvconf service
+  systemd:
+    name: resolvconf
+    state: started
+    enabled: yes
+    
+- name: Enable IPv4 forwarding
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+  
+- name: remove cloud-init network config
+  file: 
+    path: '/etc/network/interfaces.d/50-cloud-init' 
+    state: absent
+    
+- name: Include extra_trusted_routes vars
+  include_vars:
+    file: "{{ extra_trusted_routes_file }}"
+
+- name: ansible network template
+  template: 
+    src: etc/network/interfaces.d/50-ansible.cfg.j2
+    dest: /etc/network/interfaces.d/50-ansible
+    owner: root
+    group: root
+    mode: 0755
+  register: network
+
+- name: interfaces template
+  template: 
+    src: etc/network/interfaces.j2
+    dest: '/etc/network/interfaces'
+
+- name: Reboot
+  reboot: 
+  when: network.changed
+
+

@@ -1,0 +1,48 @@
+remove_vagrant_account: false
+
+extra_trusted_routes_file: extra_routes/dev/extra_trusted_routes.yaml
+
+openvpn_server_pki: "{{ playbook_dir }}/development/config/openvpn/certs/pki"
+
+openvpn_verbosity: 6
+
+proxy_url: 
+
+proxy_env: {}
+
+ldap:
+  base: "dc=example,dc=org"
+  binddn: "cn=123456,dc=example,dc=org"
+  host: "172.30.74.75"
+  port: 1389
+  vpn_groupfilter: "(&(uid=%s)(memberOf=cn=openvpn,dc=example,dc=org))"
+  server_name: "172.30.74.75"
+  use_ssl: "false"
+  skip_tls: "true"
+  use_start_tls: "false"
+  log_level: "debug"
+  log_to_file: "true"
+  checkcn: "true"
+  checkcnfail: "true"
+
+vpn_client_cidr_bit_mask: "255.255.254.0"
+
+vpn_servers:
+
+  vpn1:
+    vpn_client_cidr: "172.30.96.0 255.255.254.0"
+    untrusted:
+      nic_name: eth1
+      address: 192.168.56.10/24
+      default_gateway: 192.168.56.1
+    trusted:
+      nic_name: eth2
+      address: 172.30.74.74/24
+      gateway: 172.30.74.1
+      
+dsn:
+  dns_nameservers:
+  - 8.8.8.8
+  - 10.0.2.3
+  dns_search:
+  - gerard.nl

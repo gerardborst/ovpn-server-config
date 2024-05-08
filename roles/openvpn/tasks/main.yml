@@ -1,0 +1,229 @@
+- name: add openvpn user
+  user:
+    name: openvpn
+    system: yes
+    state: present
+    shell: /bin/bash
+    
+- name: add openvpn line
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^openvpn'
+    line: 'openvpn  ALL=(ALL) NOPASSWD: /sbin/iptables -vnL, /sbin/iptables -A FORWARD -p tcp -s *.*.*.* -j ACCEPT, /sbin/iptables -D FORWARD -p tcp -s *.*.*.* -j ACCEPT'
+    validate: /usr/sbin/visudo -cf %s
+
+- name: Install required packages
+  apt:
+    state: present
+    pkg: "{{ required_openvpn_packages }}"
+  retries: 2
+  delay: 5
+  
+- name: Create ovpn-ldap-auth log directory
+  file: 
+    state: directory 
+    path: "/var/log/openvpn/auth"
+    owner: openvpn
+    group: openvpn
+    mode: 0700
+
+- name: Create directories
+  file: 
+    state: directory 
+    path: "/etc/openvpn/{{ item }}"
+    owner: openvpn
+    group: openvpn
+    mode: 0700
+  with_list: [auth, certs, private, server]
+  
+- name: copy execs to /usr/local/bin/
+  copy: 
+    src: "usr/local/bin/{{ item }}"
+    dest: /usr/local/bin/
+    owner: root
+    group: root
+    mode: 0755
+  with_list: [openvpn_exporter, openvpn-client-connect.sh, openvpn-client-disconnect.sh]
+
+- name: template openvpn.conf
+  template: 
+    src: etc/openvpn/server/openvpn.conf.j2
+    dest: /etc/openvpn/server/openvpn.conf
+    owner: openvpn
+    group: openvpn
+    mode: 0600
+    
+- name: copy crl.pem to /etc/openvpn
+  copy: 
+    src: "{{ openvpn_server_pki }}/crl.pem" 
+    dest: /etc/openvpn/
+    owner: openvpn
+    group: openvpn
+    mode: 0600
+    
+- name: copy files to /etc/openvpn
+  copy: 
+    src: etc/openvpn/{{ item }} 
+    dest: /etc/openvpn/
+    owner: openvpn
+    group: openvpn
+    mode: 0600
+  with_list: [dh.pem, update-resolv-conf]
+  
+- name: copy tmp openvpn config
+  copy: 
+    src: "usr/lib/tmpfiles.d/openvpn.conf"
+    dest: /usr/lib/tmpfiles.d/openvpn.conf
+    owner: root
+    group: root
+    mode: 0755
+    
+- name: activate tmp openvpn config
+  shell: "systemd-tmpfiles --create"
+  
+- name: copy ca.crt to /etc/openvpn/certs
+  copy: 
+    src: "{{ openvpn_server_pki }}/ca.crt" 
+    dest: /etc/openvpn/certs/ca.crt
+    owner: openvpn
+    group: openvpn
+    mode: 0600
+    
+- name: copy server crt to /etc/openvpn/certs
+  copy: 
+    src: "{{ openvpn_server_pki }}/issued/{{ ansible_hostname }}.crt"
+    dest: /etc/openvpn/certs/server.crt
+    owner: openvpn
+    group: openvpn
+    mode: 0600
+    
+- name: copy server key to /etc/openvpn/private
+  copy: 
+    content: "{{ lookup('env',ansible_hostname | replace('-', '_')+'_key') | b64decode }}"
+    dest: /etc/openvpn/private/server.key
+    owner: openvpn
+    group: openvpn
+    mode: 0400
+    
+- name: copy ta key to /etc/openvpn/private
+  copy: 
+    content: "{{ lookup('env','VPN_TA_KEY') | b64decode }}"
+    dest: /etc/openvpn/private/ta.key
+    owner: openvpn
+    group: openvpn
+    mode: 0400
+
+- name: copy mgmt password to /etc/openvpn/private
+  copy: 
+    content: "{{ lookup('env','MGMT_PWD') | b64decode }}"
+    dest: /etc/openvpn/private/mgmt.pwd
+    owner: openvpn
+    group: openvpn
+    mode: 0400
+
+- name: template ovpn-auth-config.yaml
+  template: 
+    src: "etc/openvpn/auth/ovpn-auth-config.yaml.j2"
+    dest: /etc/openvpn/auth/ovpn-auth-config.yaml
+    owner: openvpn
+    group: openvpn
+    mode: 0600
+
+- name: Download ovpn-ldap-auth
+  get_url:
+    url: https://github.com/gerardborst/ovpn-ldap-auth/releases/download/{{ ovpn_ldap_auth_version }}/ovpn-ldap-auth.linux-amd64.tar.gz
+    dest: /tmp/ovpn-ldap-auth.linux-amd64.tar.gz
+    checksum: sha256:https://github.com/gerardborst/ovpn-ldap-auth/releases/download/{{ ovpn_ldap_auth_version }}/sha256sum.txt
+    
+- name: untar ovpn-ldap-auth
+  unarchive:
+    src: /tmp/ovpn-ldap-auth.linux-amd64.tar.gz
+    remote_src: true
+    dest: /usr/local/bin
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Download ovpn-plugin-auth-script
+  get_url:
+    url: https://github.com/gerardborst/ovpn-plugin-auth-script/releases/download/{{ ovpn_plugin_auth_script_version }}/ovpn-plugin-auth-script.linux-amd64.tar.gz
+    dest: /tmp/ovpn-plugin-auth-script.linux-amd64.tar.gz
+    checksum: sha256:https://github.com/gerardborst/ovpn-plugin-auth-script/releases/download/{{ ovpn_plugin_auth_script_version }}/sha256sum.txt
+    
+- name: untar ovpn-plugin-auth-script.so
+  unarchive:
+    src: /tmp/ovpn-plugin-auth-script.linux-amd64.tar.gz
+    remote_src: true
+    dest: /usr/lib/openvpn/
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Download ovpn-log-cert-expire-times
+  get_url:
+    url: https://github.com/gerardborst/ovpn-log-cert-expire-times/releases/download/{{ ovpn_log_cert_expire_times_version }}/ovpn-log-cert-expire-times.linux-amd64.tar.gz
+    dest: /tmp/ovpn-log-cert-expire-times.linux-amd64.tar.gz
+    checksum: sha256:https://github.com/gerardborst/ovpn-log-cert-expire-times/releases/download/{{ ovpn_log_cert_expire_times_version }}/sha256sum.txt
+
+- name: untar ovpn-log-cert-expire-times
+  unarchive:
+    src: /tmp/ovpn-log-cert-expire-times.linux-amd64.tar.gz
+    remote_src: true
+    dest: /usr/lib/openvpn/
+    owner: root
+    group: root
+    mode: 0755
+
+- name: copy logrotate config file
+  copy: 
+    src: "etc/logrotate.d/openvpn.conf" 
+    dest: /etc/logrotate.d/openvpn.conf
+    owner: root
+    group: root
+    mode: 0755
+    
+- name: change owner openvpn config files
+  file: 
+    owner: openvpn
+    group: openvpn
+    recurse: yes
+    path: /etc/openvpn
+    
+- name: change owner openvpn log files
+  file: 
+    owner: openvpn
+    group: openvpn
+    recurse: yes
+    path: /var/log/openvpn
+
+- name: copy openvpn service
+  copy: 
+    src: "usr/lib/systemd/system/openvpn.service"
+    dest: /usr/lib/systemd/system/openvpn.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: start openvpn
+  systemd:
+    state: restarted
+    name: openvpn
+    enabled: yes
+    masked: no
+    daemon_reload: yes
+
+- name: copy openvpn_exporter service files
+  copy: 
+    src: etc/systemd/system/openvpn_exporter.service 
+    dest: /etc/systemd/system/
+
+- name: Start openvpn_exporter service
+  systemd:
+    name: openvpn_exporter
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+    
+- name: Configure firewall
+  import_tasks: firewall.yml

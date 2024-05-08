@@ -1,0 +1,11 @@
+/.project
+**/.vagrant/
+/.pydevproject
+vagrant*.crt
+vagrant*.key
+vagrant*.pem
+**/*.log
+**/id_rsa
+**/ldap-auth-beta.linux-amd64.tar.gz
+*.retry
+/inventory

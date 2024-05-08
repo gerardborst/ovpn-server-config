@@ -1,0 +1,12 @@
+openvpn server:
+
+openvpn \
+--ifconfig 172.30.96.1 172.30.96.2 \
+--dev tun
+
+client:
+sudo openvpn \
+--ifconfig 172.30.96.2 172.30.96.1 \
+--dev tun \
+--remote 192.168.56.10 \
+--route 172.30.74.0 255.255.255.0

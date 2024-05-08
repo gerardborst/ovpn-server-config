@@ -1,0 +1,8 @@
+---
+- name: Configfile openssh-client
+  template:
+    src: etc/ssh/ssh_config.j2
+    dest: "{{ harden_linux_ssh_config }}"
+    owner: "{{ harden_linux_sshd_config_user }}"
+    group: "{{ harden_linux_sshd_config_group }}"
+    mode: 0600

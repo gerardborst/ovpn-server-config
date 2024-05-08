@@ -1,0 +1,30 @@
+- name: Deny incoming traffic
+  ufw:
+    policy: deny
+    direction: incoming
+
+- name: Allow outgoing traffic
+  ufw:
+    policy: allow
+    direction: outgoing
+
+- name: Allow routed traffic
+  ufw:
+    policy: allow
+    direction: routed
+
+- name: Allow openvpn
+  ufw:
+    rule: allow
+    port: "25534"
+
+- name: Allow ssh
+  ufw:
+    rule: limit
+    port: ssh
+    proto: tcp
+
+- name: Enable firewall
+  ufw:
+    state: enabled
+  

@@ -1,0 +1,23 @@
+- name: Update APT packages
+  apt:
+    update_cache: true
+    upgrade: full
+    autoclean: yes
+  retries: 5
+  delay: 5
+
+- name: Adjust APT update intervals
+  copy:
+    src: etc/apt/apt.conf.d/10periodic
+    dest: /etc/apt/apt.conf.d/10periodic
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Install required packages
+  apt:
+    state: present
+    pkg: "{{ required_system_packages }}"
+  retries: 2
+  delay: 5
+

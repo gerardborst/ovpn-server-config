@@ -1,0 +1,14 @@
+---
+# tasks file for ansible-role-ssh-hardening
+- name: Install required packages
+  apt:
+    state: present
+    pkg: "{{ harden_linux_required_packages }}"
+  retries: 2
+  delay: 5
+
+- name: Harden SSH server
+  import_tasks: openssh-server.yml
+
+- name: Harden SSH client
+  import_tasks: openssh-client.yml

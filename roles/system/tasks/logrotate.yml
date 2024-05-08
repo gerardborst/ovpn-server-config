@@ -1,0 +1,7 @@
+- name: copy logrotate config file
+  copy: 
+    src: "etc/logrotate.conf" 
+    dest: /etc/logrotate.conf
+    owner: root
+    group: root
+    mode: 0755

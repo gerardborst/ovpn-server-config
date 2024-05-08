@@ -1,0 +1,20 @@
+auto {{ vpn_servers[ansible_hostname].untrusted.nic_name }}
+iface {{ vpn_servers[ansible_hostname].untrusted.nic_name }} inet static
+    address {{ vpn_servers[ansible_hostname].untrusted.address }}
+{% if vpn_servers[ansible_hostname].untrusted.default_gateway is defined %}
+    gateway {{ vpn_servers[ansible_hostname].untrusted.default_gateway }}
+{% endif %}
+{% if vpn_servers[ansible_hostname].untrusted.route is defined and vpn_servers[ansible_hostname].untrusted.route.network is defined %}
+    post-up route add -net {{ vpn_servers[ansible_hostname].untrusted.route.network }} netmask {{ vpn_servers[ansible_hostname].untrusted.route.netmask }} gw {{ vpn_servers[ansible_hostname].untrusted.default_gateway }}
+    pre-down route del -net {{ vpn_servers[ansible_hostname].untrusted.route.network }} netmask {{ vpn_servers[ansible_hostname].untrusted.route.netmask }} gw {{ vpn_servers[ansible_hostname].untrusted.default_gateway }}
+{% endif %}
+
+auto {{ vpn_servers[ansible_hostname].trusted.nic_name }}
+iface {{ vpn_servers[ansible_hostname].trusted.nic_name }} inet static
+    address {{ vpn_servers[ansible_hostname].trusted.address }}
+    dns-nameservers {{ dsn.dns_nameservers | join(' ') }}
+    dns-search {{ dsn.dns_search | join(' ') }}
+{% for route in extra_trusted_routes | sort(attribute='network') %}
+    post-up route add -net {{ route.network }} netmask {{ route.netmask }} gw {{ vpn_servers[ansible_hostname].trusted.gateway }}
+    pre-down route del -net {{ route.network }} netmask {{ route.netmask }} gw {{ vpn_servers[ansible_hostname].trusted.gateway }}
+{% endfor %}

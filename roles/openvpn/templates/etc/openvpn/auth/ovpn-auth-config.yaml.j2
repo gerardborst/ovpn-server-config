@@ -1,0 +1,18 @@
+ldapClient:
+  base: "{{ ldap.base }}"
+  binddn: "{{ ldap.binddn }}"
+  bindPassword: "{{ lookup('env','LDAP_BIND_PASSWORD') }}"
+  groupFilter: "(memberOf=%s)"
+  host: "{{ ldap.host }}"
+  port: "{{ ldap.port }}"
+  useSsl: "{{ ldap.use_ssl }}"
+  skipTls: "{{ ldap.skip_tls }}"
+  useStartTls: "{{ ldap.use_start_tls }}"
+  vpnGroupFilter: "{{ ldap.vpn_groupfilter }}"
+  serverName: "{{ ldap.server_name }}"
+log:
+  level: "{{ ldap.log_level }}"
+  logToFile: "{{ ldap.log_to_file }}"
+cn:
+  check: "{{ ldap.checkcn }}"
+  fail: "{{ ldap.checkcnfail }}"

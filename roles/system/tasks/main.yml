@@ -1,0 +1,14 @@
+---
+- name: Config logrotate
+  import_tasks: logrotate.yml
+  
+- name: Configure network
+  import_tasks: network.yml
+
+- name: Run apt
+  import_tasks: apt.yml
+
+- name: Configure accounts
+  import_tasks: accounts.yml
+  
+  

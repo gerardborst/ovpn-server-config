@@ -1,0 +1,18 @@
+- name: Configure all
+  hosts: "{{ groupname }}"
+  gather_facts: True
+  become: true
+  roles:
+    - system
+    - ansible-role-ssh-hardening
+    - node_exporter
+    - openvpn
+    
+- name: Reboot the systems
+  hosts: "{{ groupname }}"
+  become: true
+  tasks:
+    - name: Reboot
+      reboot:
+
+    

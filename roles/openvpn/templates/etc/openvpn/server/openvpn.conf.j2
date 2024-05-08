@@ -1,0 +1,49 @@
+local {{ vpn_servers[ansible_hostname].untrusted.address.split('/')[0]  }}
+port 25534
+dev tun
+topology subnet
+server {{ vpn_servers[ansible_hostname].vpn_client_cidr }}
+cipher AES-256-GCM
+auth SHA512
+ca /etc/openvpn/certs/ca.crt
+cert /etc/openvpn/certs/server.crt
+key /etc/openvpn/private/server.key
+dh /etc/openvpn/dh.pem
+ifconfig-pool-persist /var/openvpn/ipp.txt
+tls-auth /etc/openvpn/private/ta.key 0
+replay-persist /etc/openvpn/replay-persist-file
+max-clients 500
+status /var/log/openvpn/openvpn-status.log 10
+status-version 2
+log-append  /var/log/openvpn/openvpn.log
+proto tcp4
+management 127.0.0.1 1195 /etc/openvpn/private/mgmt.pwd
+daemon openvpn
+crl-verify /etc/openvpn/crl.pem
+float
+persist-key
+persist-tun
+keepalive 10 120
+;comp-lzo
+user openvpn
+group nogroup
+verb {{ openvpn_verbosity }}
+plugin /usr/lib/openvpn/ovpn-plugin-auth-script.so /usr/local/bin/ovpn-ldap-auth
+plugin /usr/lib/openvpn/libovpn-log-cert-expire-times.so
+tmp-dir /tmp
+script-security 2
+client-connect "/usr/local/bin/openvpn-client-connect.sh /var/log/openvpn/audit.log"
+client-disconnect "/usr/local/bin/openvpn-client-disconnect.sh /var/log/openvpn/audit.log"
+
+{% for route in extra_trusted_routes | sort(attribute='network') %}
+push "route {{ route.network }} {{ route.netmask }}"
+{% endfor %}
+
+{% for search in dsn.dns_search %}
+push "dhcp-option DOMAIN-SEARCH {{ search }}"
+{% endfor %}
+
+{% for nameserver in dsn.dns_nameservers %}
+push "dhcp-option DNS {{ nameserver }}"
+{% endfor %}
+

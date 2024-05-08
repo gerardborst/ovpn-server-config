@@ -1,0 +1,173 @@
+###################################
+# General variables               #
+###################################
+
+remove_vagrant_account: true
+
+required_system_packages:
+  - apt-transport-https
+  - aptitude
+  - byobu
+  - ca-certificates
+  - cloud-init
+  - curl
+  - dnsutils
+  - htop
+  - iperf3
+  - iptables
+  - jq
+  - lsb-release
+  - mtr
+  - needrestart
+  - net-tools
+  - resolvconf
+  - screen
+  - sudo
+  - tcpdump
+  - traceroute
+  - unattended-upgrades
+  - vim
+  - whois
+  
+# defaults file for ansible-role-ssh-hardening
+    
+# SSH server configuration
+# Definie default ssh port
+harden_linux_ssh_port: "22"
+
+# Listening on specific address
+sshd_listening_address:
+    - 0.0.0.0
+
+harden_linux_sshd_config_user: root
+harden_linux_sshd_config_group: root
+
+# Set banner
+harden_linux_sshd_banner: "/etc/issue.net"
+# Use pam authentification
+harden_linux_sshd_pam: "yes"
+
+# Disable x11 forwarding
+harden_linux_sshd_x11_forwarding: "no"
+
+# Disable agent forwarding
+harden_linux_sshd_agent_forwarding: "yes"
+
+# Disable tcp forwarding
+harden_linux_sshd_tcp_forwarding: "no"
+
+# Disconnect idle sessions
+harden_linux_sshd_client_alive_interval: "300"
+harden_linux_sshd_client_alive_countMax: "3"
+
+# SSH client configuration
+harden_linux_ssh_config: /etc/ssh/ssh_config
+
+
+# Disable roaming
+harden_linux_ssh_roaming: "no"
+
+# ssh must be use pub key
+harden_linux_ssh_password_authentification: "no"
+
+# Cipher do not use sha1
+harden_linux_openssh_ciphers:
+    - chacha20-poly1305@openssh.com
+    - aes256-gcm@openssh.com
+    - aes128-gcm@openssh.com
+    - aes256-ctr
+    - aes192-ctr
+    - aes128-ctr
+
+# Message authentication code
+harden_linux_openssh_macs: 
+    - hmac-sha2-512-etm@openssh.com
+    - hmac-sha2-256-etm@openssh.com
+    - umac-128-etm@openssh.com
+    - hmac-sha2-512
+    - hmac-sha2-256
+
+# Key exchange algorithms
+harden_linux_openssh_kexalgorithms:
+    - curve25519-sha256@libssh.org
+    - diffie-hellman-group-exchange-sha256
+
+# Packages required by this role
+harden_linux_required_packages:
+    - unattended-upgrades
+    - sudo
+
+
+###################################
+# OpenVPN variables               #
+###################################
+
+extra_trusted_routes_file: extra_routes/extra_trusted_routes.yaml
+openvpn_server_pki: pki
+openvpn_verbosity: 3
+
+required_openvpn_packages:
+  - ldap-utils
+  - liblz4-1
+  - liblzo2-2
+  - libpam0g
+  - libpkcs11-helper1
+  - libsystemd0
+  - iproute2
+  - lsb-base
+  - ufw
+
+ovpn_ldap_auth_version: 1.0.0
+ovpn_plugin_auth_script_version: 1.0.4
+ovpn_log_cert_expire_times_version: 1.0.11
+
+###################################################
+# OpenVPN variables change in Production settings #
+###################################################
+
+# ldap:
+#   base: "dc=example,dc=org"
+#   binddn: "cn=readonly,dc=example,dc=org"
+#   host: "172.30.74.75"
+#   port: 1389
+#   vpn_groupfilter: "(&(uid=%s)(memberOf=cn=openvpn,dc=example,dc=org))"
+#   server_name: "172.30.74.75"
+#   use_ssl: "false"
+#   skip_tls: "true"
+#   use_start_tls: "false"
+#   log_level: "debug"
+#   log_to_file: "true"
+#   checkcn: "true"
+#   checkcnfail: "true"
+
+# vpn_client_cidr_bit_mask: "255.255.254.0"
+
+# vpn_servers:
+#   vpn1:
+#     vpn_client_cidr: "172.30.96.0 255.255.254.0"
+#     untrusted:
+#       nic_name: eth1
+#       address: 192.168.56.10/24
+#       default_gateway: 192.168.56.1
+#     trusted:
+#       nic_name: eth2
+#       address: 172.30.74.74/24
+#       gateway: 172.30.74.1
+      
+# dsn:
+#   dns_nameservers:
+#   - 8.8.8.8
+#   - 10.0.2.3
+#   dns_search:
+#   - gerard.nl
+
+  
+###################################
+# node_exporter variables         #
+###################################
+
+node_exporter_version: 1.8.0
+
+
+    
+
